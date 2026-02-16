@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusCode | JECRC Collaborative Hub</title>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { background-color: #0b0f19; color: #e2e8f0; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        .code-font { font-family: 'Fira Code', 'Courier New', monospace; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4a5568; }
+        
+        .glass-panel { background: rgba(21, 27, 43, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glow-text { text-shadow: 0 0 15px rgba(56, 189, 248, 0.5); }
+        .contrib-square { transition: all 0.2s ease; border-radius: 3px; }
+        .contrib-square:hover { transform: scale(1.25); box-shadow: 0 0 10px rgba(6, 182, 212, 0.8); z-index: 10; position: relative; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- PROBLEM BANK DATA ---
+        const PROBLEM_BANK = [
+            { id: "c01", title: "The Missing Semester Grade", category: "C / C++ Basics", difficulty: "Easy", tags: ["Arrays", "Math"], description: "Given an array of N-1 integers representing a student's grades (from 1 to N), find the one missing grade in O(N) time using C++." },
+            { id: "c02", title: "Deep Dive into Pointers", category: "C / C++ Basics", difficulty: "Medium", tags: ["Pointers", "Memory"], description: "Write a C function that swaps two strings without using the standard library strcpy or creating a temporary string buffer." },
+            { id: "ds01", title: "Guitar Fretboard Pathfinding", category: "Logical & Interesting", difficulty: "Medium", tags: ["Graphs", "BFS"], description: "Model a 6-string guitar fretboard as a grid. Find the minimum number of finger movements to reach a target note." },
+            { id: "ds02", title: "T20 Cricket Tournament Scheduler", category: "Logical & Interesting", difficulty: "Hard", tags: ["Combinatorics", "DP"], description: "Generate a valid round-robin match schedule where no team plays two matches on the same day, optimizing for the minimum days." },
+            { id: "hp01", title: "The JIC Club Filter", category: "Hackathon Prep", difficulty: "Medium", tags: ["Sorting", "Custom Comparators"], description: "Write an optimized C++ program to filter and rank 500 applicants based on Logic Score, Coding Speed, and Teamwork." },
+            { id: "hp02", title: "Smart India Hackathon Team Matcher", category: "Hackathon Prep", difficulty: "Hard", tags: ["Hash Maps", "Two Pointers"], description: "Find the optimal combination of 4 students whose combined skills perfectly map to the problem requirements." },
+            { id: "ai01", title: "LLM Prompt Tokenizer", category: "Gen AI Integration", difficulty: "Easy", tags: ["Strings", "Parsing"], description: "Write a script that takes a raw text input, strips all punctuation, normalizes the case, and outputs an array of unique word tokens." },
+            { id: "ai02", title: "Build a Markov Chain Generator", category: "Gen AI Integration", difficulty: "Medium", tags: ["Maps", "Probability"], description: "Using C++ std::map, read a block of text, map the probability of which word follows another, and generate a new 50-word sentence." }
+        ];
+
+        // --- 1. LOGIN COMPONENT ---
+        const LoginFlow = ({ onLoginSuccess }) => {
+            const [step, setStep] = useState(1);
+            const [email, setEmail] = useState('');
+            const [otp, setOtp] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+
+            const handleEmailSubmit = (e) => { e.preventDefault(); setIsLoading(true); setTimeout(() => { setIsLoading(false); setStep(2); }, 800); };
+            const handleOtpSubmit = (e) => { e.preventDefault(); setIsLoading(true); setTimeout(() => { setIsLoading(false); onLoginSuccess(email); }, 800); };
+
+            return (
+                <div className="flex flex-col items-center justify-center h-screen bg-[#0b0f19] relative overflow-hidden">
+                    <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-violet-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-40"></div>
+                    <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-cyan-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-40"></div>
+                    <div className="glass-panel p-10 rounded-2xl shadow-2xl w-full max-w-md z-10 relative">
+                        <div className="text-center mb-8">
+                            <div className="bg-gradient-to-tr from-cyan-500 to-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 transform rotate-3"><i className="fa-solid fa-code-branch text-2xl text-white"></i></div>
+                            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 tracking-tight mb-2">CampusCode</h1>
+                        </div>
+                        {step === 1 ? (
+                            <form onSubmit={handleEmailSubmit} className="space-y-6">
+                                <input type="email" className="w-full bg-[#0b0f19]/50 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-500" placeholder="student.cse@jecrc.edu.in" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                                <button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold py-3.5 rounded-xl">{isLoading ? "Loading..." : "Verify & Send OTP"}</button>
+                            </form>
+                        ) : (
+                            <form onSubmit={handleOtpSubmit} className="space-y-6">
+                                <input type="text" maxLength="6" className="w-full bg-[#0b0f19]/50 border border-white/10 rounded-xl px-4 py-4 text-white text-center tracking-[1em] text-xl font-bold outline-none focus:border-cyan-500" placeholder="••••••" value={otp} onChange={(e) => setOtp(e.target.value)} required />
+                                <button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-3.5 rounded-xl">{isLoading ? "Loading..." : "Authenticate & Enter"}</button>
+                            </form>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 2. HOME VIEW ---
+        const HomeView = ({ username, onNavigate }) => {
+            const mockContributions = Array.from({ length: 84 }, () => Math.floor(Math.random() * 5));
+            const getColor = (level) => ['bg-[#1a2235]', 'bg-cyan-900', 'bg-cyan-700', 'bg-cyan-500', 'bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]'][level] || 'bg-[#1a2235]';
+
+            return (
+                <div className="p-8 h-full overflow-y-auto bg-[#0b0f19]">
+                    <div className="flex justify-between items-end mb-10">
+                        <div>
+                            <h2 className="text-4xl font-extrabold text-white mb-2">Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-400">{username}</span>!</h2>
+                            <p className="text-blue-200/60 font-medium">Ready to build something amazing today?</p>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                        <div className="lg:col-span-1 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600 p-1 rounded-2xl">
+                            <div className="bg-[#0b0f19]/40 backdrop-blur-sm h-full w-full rounded-[14px] p-6 flex flex-col">
+                                <span className="bg-white/20 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest w-max mb-4">Daily Challenge</span>
+                                <h3 className="text-2xl font-bold text-white mb-2">Pointers & Array Manipulation</h3>
+                                <p className="text-sm text-pink-100/80 mb-8">Write a C program to reverse an array using only pointers.</p>
+                                <button onClick={() => onNavigate('editor')} className="mt-auto bg-white text-fuchsia-700 px-5 py-2.5 rounded-xl font-bold text-sm">Solve Now <i className="fa-solid fa-arrow-right ml-1"></i></button>
+                            </div>
+                        </div>
+                        <div className="lg:col-span-2 glass-panel p-7 rounded-2xl">
+                            <h3 className="text-xl font-bold text-white mb-6">Activity Heatmap</h3>
+                            <div className="grid grid-rows-7 grid-flow-col gap-[3px] bg-[#070b14] p-3 rounded-xl border border-white/5 w-max">
+                                {mockContributions.map((level, i) => <div key={i} className={`w-4 h-4 contrib-square ${getColor(level)}`}></div>)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 3. MAIN DASHBOARD ---
+        const Dashboard = ({ userEmail, onLogout }) => {
+            const username = userEmail.split('@')[0];
+            const [view, setView] = useState('home'); 
+            const [code, setCode] = useState(`#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Ready to code!" << endl;\n    return 0;\n}`);
+            const [output, setOutput] = useState('');
+            const [isCompiling, setIsCompiling] = useState(false);
+            const [chatInput, setChatInput] = useState('');
+            
+            // Filter State for Problem Bank
+            const [activeFilter, setActiveFilter] = useState('All');
+            
+            const [chatMessages, setChatMessages] = useState([
+                { user: 'rahul.cse', text: 'Hey, anyone good with C++ pointers? Im stuck on line 12.', time: '10:02 AM' },
+                { user: 'priya.it', text: 'Sure, share your snippet! Usually it is a dereferencing issue.', time: '10:04 AM' }
+            ]);
+
+            const handleRunCode = () => {
+                setIsCompiling(true); setOutput('Initializing Secure Sandbox...');
+                setTimeout(() => { setIsCompiling(false); setOutput(`> Output:\nReady to code!\n\nProcess finished with exit code 0`); }, 1200);
+            };
+
+            const sendChatMessage = (e) => {
+                e.preventDefault(); if(!chatInput.trim()) return;
+                setChatMessages([...chatMessages, { user: username, text: chatInput, time: 'Just now' }]);
+                setChatInput('');
+            };
+
+            // Dynamic Filtering Logic
+            const filteredProblems = activeFilter === 'All' 
+                ? PROBLEM_BANK 
+                : PROBLEM_BANK.filter(p => p.category === activeFilter);
+
+            const categories = ['All', 'C / C++ Basics', 'Logical & Interesting', 'Hackathon Prep', 'Gen AI Integration'];
+
+            return (
+                <div className="flex h-screen overflow-hidden bg-[#0b0f19]">
+                    {/* SIDEBAR */}
+                    <div className="w-20 bg-[#070b12] border-r border-white/5 flex flex-col items-center py-6 space-y-8 z-20 shadow-2xl">
+                        <div className="w-12 h-12 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">{username.charAt(0).toUpperCase()}</div>
+                        <nav className="flex flex-col space-y-4 flex-1 w-full px-3">
+                            <button onClick={() => setView('home')} className={`w-full py-4 rounded-xl flex justify-center ${view === 'home' ? 'bg-cyan-500/10 text-cyan-400 shadow-[inset_0_0_0_1px_rgba(6,182,212,0.2)]' : 'text-blue-200/40 hover:text-white'}`}><i className="fa-solid fa-layer-group text-xl"></i></button>
+                            <button onClick={() => setView('explore')} className={`w-full py-4 rounded-xl flex justify-center ${view === 'explore' ? 'bg-orange-500/10 text-orange-400 shadow-[inset_0_0_0_1px_rgba(249,115,22,0.2)]' : 'text-blue-200/40 hover:text-white'}`}><i className="fa-solid fa-compass text-xl"></i></button>
+                            <button onClick={() => setView('editor')} className={`w-full py-4 rounded-xl flex justify-center ${view === 'editor' ? 'bg-violet-500/10 text-violet-400 shadow-[inset_0_0_0_1px_rgba(139,92,246,0.2)]' : 'text-blue-200/40 hover:text-white'}`}><i className="fa-solid fa-code text-xl"></i></button>
+                        </nav>
+                        <button onClick={onLogout} className="text-red-400/70 hover:text-red-400 p-4"><i className="fa-solid fa-power-off text-xl"></i></button>
+                    </div>
+
+                    {/* MAIN CONTENT AREA */}
+                    <div className="flex-1 flex flex-col relative">
+                        <header className="h-16 glass-panel border-b-0 border-r-0 border-t-0 flex items-center justify-between px-8 z-10">
+                            <div>
+                                <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                                    {view === 'home' && <span className="text-cyan-400">Dashboard</span>}
+                                    {view === 'explore' && <span className="text-orange-400">Problem Bank</span>}
+                                    {view === 'editor' && <span className="text-violet-400">Workspace IDE</span>}
+                                </h2>
+                            </div>
+                            {view === 'editor' && (
+                                <div className="flex items-center gap-4">
+                                    <button onClick={handleRunCode} disabled={isCompiling} className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2">{isCompiling ? "Running..." : "Execute Code"}</button>
+                                </div>
+                            )}
+                        </header>
+
+                        <div className="flex-1 overflow-hidden bg-[#0b0f19]">
+                            {view === 'home' && <HomeView username={username} onNavigate={setView} />}
+                            
+                            {/* DYNAMIC PROBLEM BANK */}
+                            {view === 'explore' && (
+                                <div className="p-8 h-full overflow-y-auto">
+                                    <div className="mb-8">
+                                        <h3 className="text-3xl font-extrabold text-white mb-2">Explore Problems</h3>
+                                        <p className="text-blue-200/60 font-medium">Curated challenges mapped to your skills.</p>
+                                    </div>
+                                    
+                                    {/* Filter Buttons */}
+                                    <div className="flex flex-wrap gap-3 mb-8">
+                                        {categories.map(cat => (
+                                            <button 
+                                                key={cat}
+                                                onClick={() => setActiveFilter(cat)}
+                                                className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all ${
+                                                    activeFilter === cat 
+                                                    ? 'bg-cyan-500/20 border border-cyan-500/50 text-cyan-400' 
+                                                    : 'bg-[#1a2235] border border-white/10 text-blue-200 hover:bg-white/5'
+                                                }`}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* Render Filtered Problems */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
+                                        {filteredProblems.map((prob) => (
+                                            <div key={prob.id} className="glass-panel p-6 rounded-2xl border border-white/5 hover:border-cyan-500/30 transition-all flex flex-col group">
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <h4 className="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors line-clamp-1" title={prob.title}>{prob.title}</h4>
+                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+                                                        prob.difficulty === 'Easy' ? 'text-green-400 bg-green-400/10' :
+                                                        prob.difficulty === 'Medium' ? 'text-yellow-400 bg-yellow-400/10' :
+                                                        'text-red-400 bg-red-400/10'
+                                                    }`}>
+                                                        {prob.difficulty}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-blue-200/60 mb-6 flex-1">{prob.description}</p>
+                                                <div className="flex flex-wrap gap-2 mb-6">
+                                                    {prob.tags.map(tag => (
+                                                        <span key={tag} className="text-xs text-blue-300 bg-blue-900/30 px-2 py-1 rounded">{tag}</span>
+                                                    ))}
+                                                </div>
+                                                <button onClick={() => setView('editor')} className="mt-auto w-full bg-white/5 hover:bg-cyan-500/20 border border-white/10 hover:border-cyan-500/50 text-white font-bold py-2 rounded-xl text-sm transition-all">
+                                                    Open in IDE
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {view === 'editor' && (
+                                <div className="flex h-full p-4 gap-4">
+                                    <div className="flex-1 flex flex-col gap-4 min-w-[60%]">
+                                        <div className="flex-1 relative glass-panel rounded-2xl overflow-hidden border border-white/5">
+                                            <textarea className="w-full h-full bg-transparent text-cyan-100 p-6 code-font text-[15px] resize-none focus:outline-none" value={code} onChange={(e) => setCode(e.target.value)} spellCheck="false"></textarea>
+                                        </div>
+                                        <div className="h-48 glass-panel rounded-2xl overflow-hidden border border-white/5 flex flex-col">
+                                            <div className="h-8 bg-[#070b12] border-b border-white/5 flex items-center px-4"><span className="text-xs font-bold text-blue-200/50 uppercase">Output</span></div>
+                                            <div className="p-4 font-mono text-sm text-emerald-400 overflow-y-auto whitespace-pre-wrap">{output || "Ready to compile..."}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="w-80 glass-panel rounded-2xl border border-white/5 flex flex-col overflow-hidden">
+                                        <div className="h-14 bg-[#070b12] border-b border-white/5 flex items-center justify-between px-4">
+                                            <h3 className="text-sm font-bold text-white">Campus Peer Help</h3>
+                                            <span className="bg-green-500/20 text-green-400 text-[10px] font-bold px-2 py-1 rounded-full border border-green-500/30">12 Online</span>
+                                        </div>
+                                        <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                                            {chatMessages.map((msg, idx) => (
+                                                <div key={idx} className={`flex flex-col ${msg.user === username ? 'items-end' : 'items-start'}`}>
+                                                    <span className="text-[10px] text-blue-200/40 font-bold mb-1">{msg.user}</span>
+                                                    <div className={`p-3 rounded-xl text-sm ${msg.user === username ? 'bg-violet-600 text-white rounded-tr-none' : 'bg-[#1a2235] text-blue-100 rounded-tl-none border border-white/5'}`}>{msg.text}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="p-4 bg-[#070b12] border-t border-white/5">
+                                            <form onSubmit={sendChatMessage} className="flex gap-2">
+                                                <input type="text" value={chatInput} onChange={(e)=>setChatInput(e.target.value)} placeholder="Type..." className="flex-1 bg-[#1a2235] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500" />
+                                                <button type="submit" className="bg-violet-600 text-white w-10 rounded-lg flex items-center justify-center"><i className="fa-solid fa-paper-plane text-xs"></i></button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [userEmail, setUserEmail] = useState(null);
+            return <div>{!userEmail ? <LoginFlow onLoginSuccess={setUserEmail} /> : <Dashboard userEmail={userEmail} onLogout={() => setUserEmail(null)} />}</div>;
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
